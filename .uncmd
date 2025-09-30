@@ -1,7 +1,0 @@
-# List of frontend files you want to push (one per line).
-# Keep this file in sync with the negations in .gitignore above.
-src/App.js
-# Add more files here as you verify they are in working condition, e.g.:
-# src/index.js
-# src/config/index.js
-# public/index.html
