@@ -1,90 +1,75 @@
 ###########################################
+## 0. GLOBAL IGNORE RULE: All files are ignored first ##
+###########################################
+
+*
+
+###########################################
 ## 1. General files to IGNORE (Repo-ku Pogaadha Files) ##
 ###########################################
 
-# Dependencies and Build Artifacts (Dependencies and Build folders)
+# Dependencies and Build Artifacts (Always Ignore)
+!package.json
 /node_modules
 /dist
 /build
 /out
-/package-lock.json
+/package-lock.json  # Added this as it usually gets regenerated
 /yarn.lock
 
-# Log and Temp Files
+# Log and Temp Files (Always Ignore)
 *.log
 *.tmp
 *.temp
 
-# Environment Variables
+# Environment Variables (Always Ignore)
 .env
 .env.local
+.env.production
+.env.development
+.env.example          # Ignoring the example file as well
 
-# Operating System Files
+# Deployment/Config Files (Often environment-specific, better to ignore)
+/render.yaml
+/vercel.json
+
+# Operating System Files (Always Ignore)
 .DS_Store
 Thumbs.db
+.uncmd                # Ignoring the custom .uncmd file
 
-###########################################
-## 2. PROJECT FILES TO TRACK (Repo-ku Pogum Files) ##
-###########################################
+# Public folder assets (Unless specifically whitelisted below, everything is ignored)
+!public/index.html    # Whitelist main entry point
+!public/favicon.ico
+!public/logo192.png
+!public/logo512.png
+!public/manifest.json
+!public/robots.txt
 
-# Ellaa files-um adutha rules-ku thalaikeezhaai ignore aagum.
-# So, inga irukkura files mattum dhan repo-ku pogum.
-
-# --- Un-Ignore Necessary Folders for Files to be Seen ---
-# Indha folders-ah "un-ignore" panna mattum dhan, adhukulla irukkura files-ah "whitelist" panna mudiyum.
+# --- Whitelisting specific folders for backend/ and src/ ---
+# Note: Indha folders-kulla irukkura files/subfolders ellaam
+# namma adutha whitelist rules-la cover aagum.
+!backend/
 !src/
 !src/api/
 !src/assets/
 !src/component/
-!src/component/layout/
-!src/component/section/
-!src/component/sidebar/
 !src/page/
-!backend/
-!backend/routes/
-!backend/controllers/
-!backend/models/
-!backend/middleware/
 
-# --- Whitelist Main Files (App.js Imports) ---
+###########################################
+## 2. PROJECT FILES TO TRACK (Repo-ku Pogum Files - Whitelist) ##
+###########################################
 
-# Core files
+# --- Whitelist Main Files ---
 !src/App.js
-!src/assets/css/become-instructor.css # CSS file used
-!src/assets/images/bg-img/01.jpg      # Image file used
-!src/api/authorApi.js                 # API file used
-
-# --- Whitelist Used Layout Components (src/component/layout/) ---
-!src/component/layout/footer.jsx
-!src/component/layout/header.jsx
-!src/component/layout/pageheader.jsx
-!src/component/layout/pageheader-2.jsx
-!src/component/layout/ScrollToTop.jsx
-!src/component/layout/CategoryDropdown.jsx
-
-# --- Whitelist Used Section Components (src/component/section/) ---
-!src/component/section/about.jsx
-!src/component/section/achievement.jsx
-!src/component/section/achievement-2.jsx
-!src/component/section/banner.jsx
-!src/component/section/blog.jsx
-!src/component/section/category.jsx
-!src/component/section/course.jsx
-!src/component/section/instructor.jsx
-!src/component/section/skill.jsx
-!src/component/section/sponsor.jsx
-!src/component/section/student.jsx
-
-# --- Whitelist Used Sidebar Components (src/component/sidebar/) ---
-!src/component/sidebar/author.jsx
-!src/component/sidebar/comment.jsx
-!src/component/sidebar/course-cetagory.jsx
-!src/component/sidebar/course-detail.jsx
-!src/component/sidebar/googlemap.jsx
-!src/component/sidebar/group-select.jsx
-!src/component/sidebar/pagination.jsx
-!src/component/sidebar/rating.jsx
-!src/component/sidebar/respond.jsx
+!src/index.js           # Main entry point for React app
+!src/reportWebVitals.js # Standard React file
+!src/setupTests.js      # Standard React file
+!src/App.test.js        # Standard React file
+!src/assets/css/become-instructor.css
+!src/assets/images/bg-img/01.jpg
+!src/api/authorApi.js
+!src/api/courseApi.js   # Assuming this is also used
 
 # --- Whitelist All Page Files (Based on App.js uncommented imports) ---
 !src/page/404.jsx
@@ -113,9 +98,37 @@ Thumbs.db
 !src/page/AdminEditCourse.jsx
 !src/page/AdminSignup.jsx
 
-# --- Whitelist Backend Folders (If code is tracked in backend/ folder) ---
+# --- Whitelist Used Component Files (src/component/...) ---
+!src/component/layout/footer.jsx
+!src/component/layout/header.jsx
+!src/component/layout/pageheader.jsx
+!src/component/layout/pageheader-2.jsx
+!src/component/layout/ScrollToTop.jsx
+!src/component/layout/CategoryDropdown.jsx
+!src/component/section/about.jsx
+!src/component/section/achievement.jsx
+!src/component/section/achievement-2.jsx
+!src/component/section/banner.jsx
+!src/component/section/blog.jsx
+!src/component/section/category.jsx
+!src/component/section/course.jsx
+!src/component/section/instructor.jsx
+!src/component/section/skill.jsx
+!src/component/section/sponsor.jsx
+!src/component/section/student.jsx
+!src/component/sidebar/author.jsx
+!src/component/sidebar/comment.jsx
+!src/component/sidebar/course-cetagory.jsx
+!src/component/sidebar/course-detail.jsx
+!src/component/sidebar/googlemap.jsx
+!src/component/sidebar/group-select.jsx
+!src/component/sidebar/pagination.jsx
+!src/component/sidebar/rating.jsx
+!src/component/sidebar/respond.jsx
+
+# --- Whitelist Backend Folders (All files inside will be tracked) ---
 !backend/
-!backend/routes/
-!backend/controllers/
-!backend/models/
-!backend/middleware/
+# !backend/routes/  (Covered by !backend/)
+# !backend/controllers/ (Covered by !backend/)
+# !backend/models/ (Covered by !backend/)
+# !backend/middleware/ (Covered by !backend/)
