@@ -1,0 +1,121 @@
+###########################################
+## 1. General files to IGNORE (Repo-ku Pogaadha Files) ##
+###########################################
+
+# Dependencies and Build Artifacts (Dependencies and Build folders)
+/node_modules
+/dist
+/build
+/out
+/package-lock.json
+/yarn.lock
+
+# Log and Temp Files
+*.log
+*.tmp
+*.temp
+
+# Environment Variables
+.env
+.env.local
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+###########################################
+## 2. PROJECT FILES TO TRACK (Repo-ku Pogum Files) ##
+###########################################
+
+# Ellaa files-um adutha rules-ku thalaikeezhaai ignore aagum.
+# So, inga irukkura files mattum dhan repo-ku pogum.
+
+# --- Un-Ignore Necessary Folders for Files to be Seen ---
+# Indha folders-ah "un-ignore" panna mattum dhan, adhukulla irukkura files-ah "whitelist" panna mudiyum.
+!src/
+!src/api/
+!src/assets/
+!src/component/
+!src/component/layout/
+!src/component/section/
+!src/component/sidebar/
+!src/page/
+!backend/
+!backend/routes/
+!backend/controllers/
+!backend/models/
+!backend/middleware/
+
+# --- Whitelist Main Files (App.js Imports) ---
+
+# Core files
+!src/App.js
+!src/assets/css/become-instructor.css # CSS file used
+!src/assets/images/bg-img/01.jpg      # Image file used
+!src/api/authorApi.js                 # API file used
+
+# --- Whitelist Used Layout Components (src/component/layout/) ---
+!src/component/layout/footer.jsx
+!src/component/layout/header.jsx
+!src/component/layout/pageheader.jsx
+!src/component/layout/pageheader-2.jsx
+!src/component/layout/ScrollToTop.jsx
+!src/component/layout/CategoryDropdown.jsx
+
+# --- Whitelist Used Section Components (src/component/section/) ---
+!src/component/section/about.jsx
+!src/component/section/achievement.jsx
+!src/component/section/achievement-2.jsx
+!src/component/section/banner.jsx
+!src/component/section/blog.jsx
+!src/component/section/category.jsx
+!src/component/section/course.jsx
+!src/component/section/instructor.jsx
+!src/component/section/skill.jsx
+!src/component/section/sponsor.jsx
+!src/component/section/student.jsx
+
+# --- Whitelist Used Sidebar Components (src/component/sidebar/) ---
+!src/component/sidebar/author.jsx
+!src/component/sidebar/comment.jsx
+!src/component/sidebar/course-cetagory.jsx
+!src/component/sidebar/course-detail.jsx
+!src/component/sidebar/googlemap.jsx
+!src/component/sidebar/group-select.jsx
+!src/component/sidebar/pagination.jsx
+!src/component/sidebar/rating.jsx
+!src/component/sidebar/respond.jsx
+
+# --- Whitelist All Page Files (Based on App.js uncommented imports) ---
+!src/page/404.jsx
+!src/page/about.jsx
+!src/page/contact.jsx
+!src/page/course.jsx
+!src/page/course-single.jsx
+!src/page/course-view.jsx
+!src/page/forgetpass.jsx
+!src/page/home.jsx
+!src/page/instructor.jsx
+!src/page/login.jsx
+!src/page/search-none.jsx
+!src/page/search-page.jsx
+!src/page/signup.jsx
+!src/page/team.jsx
+!src/page/team-single.jsx
+!src/page/BecomeInstructor.jsx
+!src/page/AuthorApplications.jsx
+!src/page/ForgotPasswordPage.jsx
+!src/page/ResetPasswordPage.jsx
+!src/page/MyEnrolledCourses.jsx
+!src/page/AdminLogin.jsx
+!src/page/AdminDashboard.jsx
+!src/page/AdminAddCourse.jsx
+!src/page/AdminEditCourse.jsx
+!src/page/AdminSignup.jsx
+
+# --- Whitelist Backend Folders (If code is tracked in backend/ folder) ---
+!backend/
+!backend/routes/
+!backend/controllers/
+!backend/models/
+!backend/middleware/
