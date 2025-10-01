@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { fetchAuthorsWithStats } from "../api/authorApi";
+import axios from "axios";
+import { API_BASE_URL } from "../config";
 import Footer from "../component/layout/footer";
 import Header from "../component/layout/header";
 import PageHeader from "../component/layout/pageheader";
@@ -13,10 +14,16 @@ const TeamPage = () => {
 
     useEffect(() => {
         const fetchData = async () => {
+            setLoading(true);
+            setError(null);
             try {
-                const data = await fetchAuthorsWithStats();
+                // direct call to deployed backend (uses config)
+                const res = await axios.get(`${API_BASE_URL}/api/authors`);
+                // backend may wrap list in res.data or res.data.data; handle both
+                const data = Array.isArray(res.data) ? res.data : (Array.isArray(res.data?.data) ? res.data.data : []);
                 setInstructorList(data);
             } catch (err) {
+                console.error('Instructor fetch error:', err?.message || err);
                 setError('Failed to load instructors');
             } finally {
                 setLoading(false);
