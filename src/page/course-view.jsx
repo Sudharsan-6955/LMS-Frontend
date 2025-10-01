@@ -1,6 +1,7 @@
 import React, { Fragment, useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import axios from "axios";
+import { useParams } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 
 import Footer from "../component/layout/footer";
 import Header from "../component/layout/header";
@@ -12,24 +13,25 @@ const CourseView = () => {
   const [authorInfo, setAuthorInfo] = useState(null);
   const [currentVideo, setCurrentVideo] = useState('');
   const [progress, setProgress] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const videoRef = useRef(null);
 
   useEffect(() => {
-    const fetchCourse = async () => {
+    const load = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/courses/${courseId}`);
+        setLoading(true);
+        const base = (API_BASE_URL || "https://lms-backend-6ik3.onrender.com").replace(/\/$/, "");
+        const res = await axios.get(`${base}/api/courses/${courseId}`, { timeout: 10000 });
         setCourse(res.data);
-
-        if (res.data?.author) {
-          const authorRes = await axios.get(`http://localhost:5000/api/authors/${res.data.author}`);
-          setAuthorInfo(authorRes.data);
-        }
-      } catch (error) {
-        console.error('Error fetching course:', error);
+      } catch (err) {
+        console.error("Error fetching course:", err?.message || err);
+        setError("Unable to load course data");
+      } finally {
+        setLoading(false);
       }
     };
-
-    fetchCourse();
+    load();
   }, [courseId]);
 
   useEffect(() => {
@@ -74,13 +76,26 @@ const CourseView = () => {
     localStorage.setItem(`progress-${currentVideo}`, currentTime);
   };
 
-  if (!course) {
+  if (loading) {
+    return (
+      <Fragment>
+        <Header />
+        <PageHeader title="Loading Course..." curPage={'Course View'} />
+        <div className="container text-center my-5">
+          <h3>Loading, please wait...</h3>
+        </div>
+        <Footer />
+      </Fragment>
+    );
+  }
+
+  if (error) {
     return (
       <Fragment>
         <Header />
         <PageHeader title="Course Not Found" curPage={'Course View'} />
         <div className="container text-center my-5">
-          <h3>Sorry, the requested course does not exist.</h3>
+          <h3>{error}</h3>
         </div>
         <Footer />
       </Fragment>

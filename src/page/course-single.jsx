@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 import Footer from "../component/layout/footer";
 import Header from "../component/layout/header";
 import PageHeaderTwo from "../component/layout/pageheader-2";
@@ -23,14 +24,21 @@ const CourseSingle = () => {
   const videoRef = useRef(null);
   const [currentProgress, setCurrentProgress] = useState(0);
   const [commentCount, setCommentCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/courses/${id}`);
+        setLoading(true);
+        const base = (API_BASE_URL || "https://lms-backend-6ik3.onrender.com").replace(/\/$/, "");
+        const res = await axios.get(`${base}/api/courses/${id}`, { timeout: 10000 });
         setCourse(res.data);
       } catch (err) {
-        console.error("Error fetching course:", err);
+        console.error("Error fetching course:", err?.message || err);
+        setError("Course not found or network error");
+      } finally {
+        setLoading(false);
       }
     };
     fetchCourse();
