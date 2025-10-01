@@ -82,6 +82,11 @@ Thumbs.db
 !src/assets/css/become-instructor.css
 !src/assets/images/bg-img/01.jpg
 
+# Ensure image folder and file are tracked
+!src/assets/images/
+!src/assets/images/bg-img/
+!src/assets/images/bg-img/01.jpg
+
 # --- Whitelist API files used by the app ---
 !src/api/authorApi.js
 !src/api/courseApi.js
