@@ -1,13 +1,26 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import CategoryDropdown from "../component/layout/CategoryDropdown";
+import { API_BASE_URL } from "../config"; // added
 
 const AdminAddCourse = () => {
   const [authors, setAuthors] = useState([]);
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/authors").then(res => setAuthors(res.data));
+    let mounted = true;
+    const base = (API_BASE_URL || "https://lms-backend-6ik3.onrender.com").replace(/\/$/, "");
+    axios.get(`${base}/api/authors`, { timeout: 10000 })
+      .then(res => {
+        const data = Array.isArray(res.data) ? res.data : (Array.isArray(res.data?.data) ? res.data.data : []);
+        if (mounted) setAuthors(data);
+      })
+      .catch(err => {
+        console.error("[AdminAddCourse] Failed to load authors:", err?.response?.data || err?.message || err);
+        if (mounted) setAuthors([]);
+      });
+    return () => { mounted = false; };
   }, []);
+
   const [formData, setFormData] = useState({
     title: "",
     price: "",
@@ -22,7 +35,6 @@ const AdminAddCourse = () => {
     authorImgAlt: "",
     authorImgUrl: "",
     description: "",
-  // reviewCount removed
     videoLink: "",
     overview: "",
     whatYouWillLearn: "",
@@ -103,7 +115,9 @@ const AdminAddCourse = () => {
       alert("Admin not logged in or session expired.");
       return;
     }
+
     try {
+      const base = (API_BASE_URL || "https://lms-backend-6ik3.onrender.com").replace(/\/$/, "");
       // Use either uploaded file or manual URL for course image
       const imgUrl = imgFile
         ? await uploadToCloudinary(imgFile)
@@ -126,24 +140,25 @@ const AdminAddCourse = () => {
           };
         }
       } else if (formData.authorType === "new" && formData.newAuthorName) {
-        const newAuthorRes = await axios.post("http://localhost:5000/api/authors", {
+        // create new author on backend using configured base
+        const newAuthorRes = await axios.post(`${base}/api/authors`, {
           name: formData.newAuthorName,
           image: authorImgUrl,
           imgAlt: formData.authorImgAlt,
           desc: formData.authorDesc || "",
           degi: formData.authorDegi || "",
           socialList: []
-        });
+        }, { timeout: 10000 });
+        const na = newAuthorRes.data || newAuthorRes.data?.data || newAuthorRes.data?.author || newAuthorRes.data;
         authorObj = {
-          name: newAuthorRes.data.name,
-          image: newAuthorRes.data.image,
-          degi: newAuthorRes.data.degi,
-          desc: newAuthorRes.data.desc,
-          socialList: newAuthorRes.data.socialList || []
+          name: na.name,
+          image: na.image,
+          degi: na.degi,
+          desc: na.desc,
+          socialList: na.socialList || []
         };
-        setAuthors(prev => [...prev, newAuthorRes.data]);
+        setAuthors(prev => [...prev, na]);
       }
-      // Always set author.image for backend (for new author, already set above)
 
       // Calculate total video duration in minutes
       let totalMinutes = 0;
@@ -169,22 +184,24 @@ const AdminAddCourse = () => {
         ...formData,
         imgUrl,
         author: authorObj ? authorObj : {},
-        overview: formData.overview.split(",").map(str => str.trim()),
-        whatYouWillLearn: formData.whatYouWillLearn.split(",").map(str => str.trim()),
+        overview: formData.overview ? formData.overview.split(",").map(str => str.trim()) : [],
+        whatYouWillLearn: formData.whatYouWillLearn ? formData.whatYouWillLearn.split(",").map(str => str.trim()) : [],
         videoContent,
         duration: autoDuration,
-        isPaid: parseFloat(formData.price) > 0
+        isPaid: parseFloat(formData.price || 0) > 0
       };
 
       console.log(`[Frontend Debug] Submitting course with category: "${payload.category}"`);
 
-      const res = await axios.post("http://localhost:5000/api/courses/create", payload, {
+      // POST course to deployed backend
+      const res = await axios.post(`${base}/api/courses/create`, payload, {
         headers: { Authorization: `Bearer ${token}` },
+        timeout: 20000
       });
 
-      if (res.data) {
+      if (res?.data) {
         // Update UI with backend-calculated durations
-        setVideoContent(res.data.course.videoContent);
+        setVideoContent(res.data.course?.videoContent || videoContent);
         setFormData({
           title: "",
           price: "",
@@ -196,7 +213,6 @@ const AdminAddCourse = () => {
           imgAlt: "",
           authorImgAlt: "",
           description: "",
-          // reviewCount removed
           videoLink: "",
           overview: "",
           whatYouWillLearn: "",
@@ -212,33 +228,33 @@ const AdminAddCourse = () => {
         });
         setImgFile(null);
         setAuthorImgFile(null);
-        
+
         // Trigger a global event to refresh categories on all pages
-        window.dispatchEvent(new CustomEvent('courseAdded', { 
-          detail: { category: payload.category } 
-        }));
-        
-        // Also manually verify the count update
+        window.dispatchEvent(new CustomEvent('courseAdded', { detail: { category: payload.category } }));
+
+        // Verify category update from backend
         setTimeout(async () => {
           try {
-            const categoryRes = await axios.get("http://localhost:5000/api/categories");
-            console.log('[Frontend Debug] Updated categories:', categoryRes.data);
-            const updatedCategory = categoryRes.data.find(c => c.title === payload.category);
+            const categoryRes = await axios.get(`${base}/api/categories`, { timeout: 10000 });
+            const catData = Array.isArray(categoryRes.data) ? categoryRes.data : (Array.isArray(categoryRes.data?.data) ? categoryRes.data.data : []);
+            console.log('[Frontend Debug] Updated categories:', catData);
+            const updatedCategory = catData.find(c => String(c.title).toLowerCase() === String(payload.category).toLowerCase());
             if (updatedCategory) {
               console.log(`[Frontend Debug] Category "${payload.category}" now has count: ${updatedCategory.count}`);
+            } else {
+              console.warn(`[Frontend Debug] Category "${payload.category}" not found in categories list.`);
             }
           } catch (err) {
-            console.error('Error checking updated categories:', err);
+            console.error('Error checking updated categories:', err?.response?.data || err?.message || err);
           }
         }, 1000);
-        
-        alert(`✅ Course "${payload.title}" added to category "${payload.category}"! Check the category page for updated counts.`);
+
+        alert(`✅ Course "${payload.title}" added to category "${payload.category}"!`);
       } else {
         alert("✅ Course added! (No duration info returned)");
       }
     } catch (err) {
-      // show full server response when available
-      console.error("❌ Error adding course:", err.response?.data || err.message);
+      console.error("❌ Error adding course:", err?.response?.data || err?.message || err);
       const serverMsg = err.response?.data?.message || err.response?.data?.error || err.message || "Error while adding course";
       alert(serverMsg);
     }
