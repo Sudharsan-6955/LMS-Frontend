@@ -1,14 +1,22 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../../config";
 import Rating from "./rating";
 
 const Comment = ({ courseId, refresh }) => {
     const [comments, setComments] = useState([]);
+    const loadComments = async () => {
+        const base = (API_BASE_URL || "https://lms-backend-6ik3.onrender.com").replace(/\/$/, "");
+        try {
+            const res = await axios.get(`${base}/api/comments/${courseId}`, { timeout: 10000 });
+            setComments(Array.isArray(res.data) ? res.data : (Array.isArray(res.data?.data) ? res.data.data : []));
+        } catch (err) {
+            console.warn("Comments load failed:", err?.message || err);
+            setComments([]);
+        }
+    };
     useEffect(() => {
-        if (!courseId) return;
-        axios.get(`http://localhost:5000/api/comments/${courseId}`)
-            .then(res => setComments(res.data))
-            .catch(() => setComments([]));
+        if (courseId) loadComments();
     }, [courseId, refresh]);
     return (
         <div className="comments">

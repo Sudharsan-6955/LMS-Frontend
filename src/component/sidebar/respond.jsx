@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../../config";
 // Title and button text constants
 const title = "Leave a Comment";
 const btnText = "send comment";
@@ -16,10 +17,13 @@ const Respond = ({ courseId, onComment, user }) => {
         if (!form.message || !form.rating) return;
         setSubmitting(true);
         try {
-            await axios.post(`http://localhost:5000/api/comments/${courseId}`, form);
+            const base = (API_BASE_URL || "https://lms-backend-6ik3.onrender.com").replace(/\/$/, "");
+            await axios.post(`${base}/api/comments/${courseId}`, form, { timeout: 10000 });
             setForm({ ...form, subject: "", message: "", rating: 0 });
             if (onComment) onComment();
-        } catch {}
+        } catch (err) {
+            console.error("❌ Comment submit failed:", err?.message || err);
+        }
         setSubmitting(false);
     };
     return (

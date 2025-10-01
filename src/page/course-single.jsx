@@ -28,10 +28,11 @@ const CourseSingle = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    const base = (API_BASE_URL || "https://lms-backend-6ik3.onrender.com").replace(/\/$/, "");
+
     const fetchCourse = async () => {
       try {
         setLoading(true);
-        const base = (API_BASE_URL || "https://lms-backend-6ik3.onrender.com").replace(/\/$/, "");
         const res = await axios.get(`${base}/api/courses/${id}`, { timeout: 10000 });
         setCourse(res.data);
       } catch (err) {
@@ -42,10 +43,14 @@ const CourseSingle = () => {
       }
     };
     fetchCourse();
-    // Fetch comment count
-    axios.get(`http://localhost:5000/api/comments/${id}`)
-      .then(res => setCommentCount(res.data.length))
-      .catch(() => setCommentCount(0));
+
+    // Fetch comment count using same base (was hardcoded to localhost)
+    axios.get(`${base}/api/comments/${id}`)
+      .then(res => setCommentCount(Array.isArray(res.data) ? res.data.length : (res.data?.length || 0)))
+      .catch((err) => {
+        console.warn("Comments fetch failed:", err?.message || err);
+        setCommentCount(0);
+      });
   }, [id]);
 
   useEffect(() => {
