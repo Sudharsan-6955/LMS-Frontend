@@ -3,7 +3,6 @@ import Footer from "../component/layout/footer";
 import Header from "../component/layout/header";
 import PageHeader from "../component/layout/pageheader";
 import AchievementTwo from "../component/section/achievement-2";
-import Blog from "../component/section/blog";
 import Instructor from "../component/section/instructor";
 import Skill from "../component/section/skill";
 import Student from "../component/section/student";
