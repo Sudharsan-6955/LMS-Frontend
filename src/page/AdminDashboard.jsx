@@ -2,6 +2,7 @@ import AdminAddCourse from "./AdminAddCourse";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 
 const AdminDashboard = () => {
   const [courses, setCourses] = useState([]);
@@ -9,7 +10,7 @@ const AdminDashboard = () => {
 
   const fetchCourses = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/courses");
+      const res = await axios.get(`${API_BASE_URL}/api/courses`);
       setCourses(res.data);
     } catch (err) {
       console.error("❌ Error loading courses:", err.message);
@@ -39,8 +40,7 @@ const AdminDashboard = () => {
         throw new Error('Unauthorized: No token found');
       }
 
-      const apiUrl = "http://localhost:5000";
-      await axios.delete(`${apiUrl}/api/courses/${courseId}`, {
+      await axios.delete(`${API_BASE_URL}/api/courses/${courseId}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }

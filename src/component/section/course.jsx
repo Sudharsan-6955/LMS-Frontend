@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Rating from "../sidebar/rating";
+import { API_BASE_URL } from "../../config"; // added
 
 const subTitle = "Latest Courses";
 const title = "Pick A Course To Get Started";
@@ -12,7 +13,7 @@ const CourseSection = () => {
     useEffect(() => {
         setLoading(true);
         setError(null);
-        fetch('http://localhost:5000/api/courses')
+        fetch(`${API_BASE_URL}/api/courses`)
             .then(res => {
                 if (!res.ok) throw new Error('Failed to fetch courses');
                 return res.json();

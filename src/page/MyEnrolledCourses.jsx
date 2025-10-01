@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from "../config";
 
 const MyEnrolledCourses = () => {
   const [enrolledCourses, setEnrolledCourses] = useState([]);
@@ -12,7 +13,7 @@ const MyEnrolledCourses = () => {
       if (!user || !user._id) return;
 
       try {
-        const baseUrl = "http://localhost:5000";
+        const baseUrl = API_BASE_URL;
         // 1. Fetch enrollments for the logged-in user
         const res = await axios.get(`${baseUrl}/api/enrollments/user/${user._id}`);
         const enrollmentList = res.data;

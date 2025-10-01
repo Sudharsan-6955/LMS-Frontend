@@ -1,6 +1,7 @@
 import { useState, useEffect, Fragment } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 
 import Footer from "../component/layout/footer";
 import Header from "../component/layout/header";
@@ -47,13 +48,13 @@ const CoursePage = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await axios.get('http://localhost:5000/api/courses');
+        const res = await axios.get(`${API_BASE_URL}/api/courses`);
         setCourses(res.data);
         // Fetch comment counts for each course
         const counts = {};
         await Promise.all(res.data.map(async course => {
           try {
-            const commentRes = await axios.get(`http://localhost:5000/api/comments/${course._id}`);
+            const commentRes = await axios.get(`${API_BASE_URL}/api/comments/${course._id}`);
             counts[course._id] = commentRes.data.length;
           } catch {
             counts[course._id] = 0;

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 
-const backendUrl = process.env.REACT_APP_API_URL || "http://localhost:5000";
+const backendUrl = API_BASE_URL;
 
 const AuthorApplications = () => {
   const [applications, setApplications] = useState([]);
