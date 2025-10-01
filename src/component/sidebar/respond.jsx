@@ -7,31 +7,33 @@ const title = "Leave a Comment";
 const btnText = "send comment";
 
 const Respond = ({ courseId, onComment, user }) => {
-    // Use user info or fallback
     const activeUser = user || { name: "Demo User", email: "demo@example.com" };
     const [form, setForm] = useState({ name: activeUser.name, email: activeUser.email, subject: "", message: "", rating: 0 });
     const [submitting, setSubmitting] = useState(false);
     const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
-    const handleRating = r => setForm({ ...form, rating: r });
+    const handleRating = r => setForm({ ...form, rating: Number(r) });
+
     const handleSubmit = async e => {
         e.preventDefault();
-        if (!form.message || !form.rating) return;
+        if (!form.message || !form.rating) {
+            alert("Please write a message and select a rating (1-5).");
+            return;
+        }
         setSubmitting(true);
         try {
             const base = (API_BASE_URL || "https://lms-backend-6ik3.onrender.com").replace(/\/$/, "");
-            // include several common fields the backend might expect
+            // send fields backend expects: name, email, message, rating
             const payload = {
-                text: form.message.trim(),
-                courseId,
-                name: activeUser.name,
-                email: activeUser.email,
-                userId: activeUser.id || activeUser._id
+                name: form.name || activeUser.name,
+                email: form.email || activeUser.email,
+                message: form.message.trim(),
+                rating: Number(form.rating)
             };
-            await axios.post(`${base}/api/comments/${encodeURIComponent(courseId)}`, payload, { timeout: 10000 });
+            const res = await axios.post(`${base}/api/comments/${encodeURIComponent(courseId)}`, payload, { timeout: 10000 });
             setForm({ ...form, subject: "", message: "", rating: 0 });
-            if (onComment) onComment();
+            if (typeof onComment === "function") onComment();
+            // optional: show success message
         } catch (err) {
-            // Try to show server message if present
             const serverMsg = err?.response?.data?.message || err?.response?.data || err?.message;
             console.error("Failed to post comment:", serverMsg);
             alert("Failed to post comment: " + (serverMsg || "Please check console for details"));
@@ -39,6 +41,7 @@ const Respond = ({ courseId, onComment, user }) => {
             setSubmitting(false);
         }
     };
+
     return (
         <div id="respond" className="comment-respond mb-lg-0">
             <h4 className="title-border">{title}</h4>
@@ -51,12 +54,12 @@ const Respond = ({ courseId, onComment, user }) => {
                     <textarea rows="7" name="message" placeholder="Your Message" value={form.message} onChange={handleChange} required></textarea>
                     <div className="star-rating mb-2">
                         {[1,2,3,4,5].map(star => (
-                            <span key={star} style={{ cursor: 'pointer', color: star <= form.rating ? '#ff9800' : '#ccc', fontSize: '1.5em' }} onClick={() => handleRating(star)}>
-                                {star <= form.rating ? "★" : "☆"}
+                            <span key={star} style={{ cursor: 'pointer', color: star <= (Number(form.rating)||0) ? '#ff9800' : '#ccc', fontSize: '1.5em' }} onClick={() => handleRating(star)}>
+                                {star <= (Number(form.rating)||0) ? "★" : "☆"}
                             </span>
                         ))}
                     </div>
-                    <button type="submit" className="lab-btn" disabled={submitting}><span>{btnText}</span></button>
+                    <button type="submit" className="lab-btn" disabled={submitting}><span>{submitting ? "Posting..." : btnText}</span></button>
                 </form>
             </div>
         </div>
