@@ -1,6 +1,7 @@
 import { Fragment, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 
 import Footer from "../component/layout/footer";
 import Header from "../component/layout/header";
@@ -46,7 +47,7 @@ const SignupPage = () => {
         }
 
         try {
-            const apiUrl = "http://localhost:5000";
+            const apiUrl = (API_BASE_URL || "https://lms-backend-6ik3.onrender.com").replace(/\/$/, "");
             const res = await axios.post(`${apiUrl}/api/auth/register`, {
                 name: formData.name,
                 email: formData.email,

@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 import "../assets/css/become-instructor.css";
 import bg from "../assets/images/bg-img/01.jpg"; // added import
 
@@ -38,20 +39,16 @@ const BecomeInstructor = () => {
       setStatus("Please upload your resume as a PDF file.");
       return;
     }
-    if (form.resume.type !== "application/pdf") {
-      setStatus("Only PDF files are allowed for resume upload.");
-      return;
-    }
     setLoading(true);
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000";
+      const apiUrl = (API_BASE_URL || "https://lms-backend-6ik3.onrender.com").replace(/\/$/, "");
       const formData = new FormData();
       formData.append("name", form.name);
       formData.append("degree", form.degree);
       formData.append("skill", form.skill);
       formData.append("resume", form.resume);
       formData.append("category", form.skill); // Ensure category is sent properly
-      console.log(`[Form Submission] Sending category: '${form.skill}'`); // Log the category for debugging
+      console.log(`[Form Submission] Sending category: '${form.skill}'`);
       const res = await axios.post(`${apiUrl}/api/authormail`, formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
@@ -125,3 +122,4 @@ const BecomeInstructor = () => {
 };
 
 export default BecomeInstructor;
+

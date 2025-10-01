@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { API_BASE_URL } from "../../config"; // added import
 
 
 // NewsletterForm component for handling email subscription
@@ -21,7 +22,6 @@ function NewsletterForm() {
             setFunMsg("");
         } else if (val.length < 4) {
             setFunMsg("Type a bit more... emails are longer!");
-            setFunMsg("Hmm, is that really your email?");
         } else if (!emailRegex.test(val)) {
             setFunMsg("That doesn't look like a real email! 😜");
         } else {
@@ -32,25 +32,31 @@ function NewsletterForm() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setStatus("");
+        // client-side validation
+        const trimmed = (email || "").trim();
+        if (!emailRegex.test(trimmed)) {
+            setStatus("Please enter a valid email address.");
+            return;
+        }
         setLoading(true);
         setFunMsg("");
         try {
-            // Always use localhost for local development
-            const apiUrl = "http://localhost:5000";
-            const res = await axios.post(`${apiUrl}/api/student-emails`, { email });
-            if (res.status === 201) {
-                setStatus("Subscribed successfully!");
+            const base = (API_BASE_URL || "https://lms-backend-6ik3.onrender.com").replace(/\/$/, "");
+            const res = await axios.post(`${base}/api/student-emails`, { email: trimmed }, { timeout: 10000 });
+            // accept 200 or 201
+            if (res.status === 201 || res.status === 200) {
+                setStatus(res.data?.message || "Subscribed successfully!");
                 setEmail("");
-                setTimeout(() => setStatus("") , 3000);
+                setTimeout(() => setStatus(""), 4000);
             } else {
-                setStatus(res.data.message || "Subscription failed");
-                setEmail("");
-                setTimeout(() => setStatus("") , 3000);
+                setStatus(res.data?.message || "Subscription failed");
             }
         } catch (err) {
-            setStatus(err.response?.data?.message || "Subscription failed");
-            setEmail("");
-            setTimeout(() => setStatus("") , 3000);
+            // show backend message or generic error
+            const msg = err?.response?.data?.message || err?.message || "Subscription failed";
+            console.error("Newsletter subscribe error:", msg, err?.response?.data);
+            setStatus(msg);
+            // keep the email so user can retry/correct
         } finally {
             setLoading(false);
         }

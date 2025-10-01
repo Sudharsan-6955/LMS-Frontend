@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 import Header from "../component/layout/header";
 import Footer from "../component/layout/footer";
 import PageHeader from "../component/layout/pageheader";
@@ -27,10 +28,10 @@ const ResetPasswordPage = () => {
         }
         setLoading(true);
         try {
-            const apiUrl = "http://localhost:5000";
+            const apiUrl = (API_BASE_URL || "https://lms-backend-6ik3.onrender.com").replace(/\/$/, "");
             const res = await axios.post(`${apiUrl}/api/auth/reset-password/${token}`, {
                 password: form.password,
-            });
+            }, { timeout: 10000 });
             if (res.status === 200 || res.status === 201) {
                 setSuccess("Password reset successful! Redirecting to login...");
                 setTimeout(() => navigate("/login"), 2000);

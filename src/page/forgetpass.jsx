@@ -1,6 +1,7 @@
 import { useState, Fragment } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 import Footer from "../component/layout/footer";
 import Header from "../component/layout/header";
 import PageHeader from "../component/layout/pageheader";
@@ -47,8 +48,8 @@ const ForgetPass = () => {
         setStatus("");
         setLoading(true);
         try {
-            const apiUrl = "http://localhost:5000";
-            const res = await axios.post(`${apiUrl}/api/auth/forgot-password`, { email });
+            const apiUrl = (API_BASE_URL || "https://lms-backend-6ik3.onrender.com").replace(/\/$/, "");
+            const res = await axios.post(`${apiUrl}/api/auth/forgot-password`, { email }, { timeout: 10000 });
             setStatus(res.data.message || "Reset link sent to your email.");
         } catch (err) {
             setStatus(err.response?.data?.message || "Failed to send reset link.");

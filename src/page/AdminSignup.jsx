@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from "../config";
 
 const AdminSignup = () => {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ const AdminSignup = () => {
     }
     setLoading(true);
     try {
-      const apiUrl = "http://localhost:5000";
+      const apiUrl = (API_BASE_URL || "https://lms-backend-6ik3.onrender.com").replace(/\/$/, "");
       const response = await axios.post(`${apiUrl}/api/admin/signup`, {
         email,
         password
