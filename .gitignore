@@ -1,0 +1,156 @@
+###########################################
+## 0. GLOBAL IGNORE RULE: All files are ignored first ##
+###########################################
+
+# IGNORE EVERYTHING by default, then explicitly unignore the files/folders
+# you want to track (this is your whitelist approach).
+*
+
+###########################################
+## 1. OPEN ROOT & MAIN FOLDERS FOR WHITELIST ##
+###########################################
+
+# Allow root and main project folders so we can selectively unignore files inside
+!/
+!/src/
+!/public/
+!/backend/
+!/.gitignore
+!/README.md
+!/.github/
+
+###########################################
+## 2. KEEP COMMON UNTRACKED FOLDERS / FILES ##
+###########################################
+
+# Dependencies & build artifacts (explicitly ignore despite the unignore above)
+node_modules/
+dist/
+build/
+out/
+coverage/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+*.log
+
+# Environment files
+.env
+.env.*.local
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Vercel/local deployment config (ignore local deployment caches)
+.vercel/
+.vercelignore
+
+###########################################
+## 3. PROJECT FILES TO TRACK (WHITELIST) ##
+###########################################
+
+# Project metadata (must be tracked for npm/vercel builds)
+!package.json
+!package-lock.json
+!yarn.lock
+!README.md
+
+# Public folder essentials
+!public/index.html
+!public/favicon.ico
+!public/logo192.png
+!public/logo512.png
+!public/manifest.json
+!public/robots.txt
+
+# --- Whitelist Main Files (src/) ---
+!src/App.js
+!src/index.js
+!src/reportWebVitals.js
+!src/setupTests.js
+!src/App.test.js
+
+# --- Whitelist Assets used by your app (explicit) ---
+!src/assets/
+!src/assets/css/icofont.min.css
+!src/assets/css/animate.css
+!src/assets/css/style.min.css
+!src/assets/css/become-instructor.css
+!src/assets/images/bg-img/01.jpg
+
+# --- Whitelist API files used by the app ---
+!src/api/authorApi.js
+!src/api/courseApi.js
+
+# --- Whitelist Page files (as you listed) ---
+!src/page/*.jsx
+!src/page/*.js
+!src/page/404.jsx
+!src/page/about.jsx
+!src/page/contact.jsx
+!src/page/course.jsx
+!src/page/course-single.jsx
+!src/page/course-view.jsx
+!src/page/forgetpass.jsx
+!src/page/home.jsx
+!src/page/instructor.jsx
+!src/page/login.jsx
+!src/page/search-none.jsx
+!src/page/search-page.jsx
+!src/page/signup.jsx
+!src/page/team.jsx
+!src/page/team-single.jsx
+!src/page/BecomeInstructor.jsx
+!src/page/AuthorApplications.jsx
+!src/page/ForgotPasswordPage.jsx
+!src/page/ResetPasswordPage.jsx
+!src/page/MyEnrolledCourses.jsx
+!src/page/AdminLogin.jsx
+!src/page/AdminDashboard.jsx
+!src/page/AdminAddCourse.jsx
+!src/page/AdminEditCourse.jsx
+!src/page/AdminSignup.jsx
+
+# --- Whitelist specific component files (as you listed) ---
+!src/component/layout/footer.jsx
+!src/component/layout/header.jsx
+!src/component/layout/pageheader.jsx
+!src/component/layout/pageheader-2.jsx
+!src/component/layout/ScrollToTop.jsx
+!src/component/layout/CategoryDropdown.jsx
+!src/component/section/about.jsx
+!src/component/section/achievement.jsx
+!src/component/section/achievement-2.jsx
+!src/component/section/banner.jsx
+!src/component/section/category.jsx
+!src/component/section/course.jsx
+!src/component/section/instructor.jsx
+!src/component/section/skill.jsx
+!src/component/section/sponsor.jsx
+!src/component/section/student.jsx
+!src/component/sidebar/author.jsx
+!src/component/sidebar/comment.jsx
+!src/component/sidebar/course-cetagory.jsx
+!src/component/sidebar/course-detail.jsx
+!src/component/sidebar/googlemap.jsx
+!src/component/sidebar/group-select.jsx
+!src/component/sidebar/pagination.jsx
+!src/component/sidebar/rating.jsx
+!src/component/sidebar/respond.jsx
+
+# --- Whitelist entire backend (you asked to keep this tracked) ---
+!backend/**
+
+###########################################
+## 4. NOTES / HELPFUL REMINDERS ##
+###########################################
+# - Keep this file tracked. With the global '*' at top, only negated entries
+#   will be included in Git. If you add new files that must be tracked, add
+#   explicit `!` rules here (and ensure parent folder is unignored).
+# - If you decide later to track more of src/, you can add '!/src/**' to include all.
+# - Do NOT re-add lines like '/package.json' or '/package-lock.json' — those will
+#   re-ignore essential project files required by Vercel and npm.
