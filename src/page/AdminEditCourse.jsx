@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 
 const AdminEditCourse = ({ fetchCourses }) => {
   const { id } = useParams();
@@ -11,37 +12,89 @@ const AdminEditCourse = ({ fetchCourses }) => {
   const [categories, setCategories] = useState([]);
   const [successMsg, setSuccessMsg] = useState("");
 
+  const getApiUrl = () => (API_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
+
+  const getAdminToken = () => {
+    // Try common storage shapes
+    try {
+      const rawA = localStorage.getItem("adminToken");
+      if (rawA) {
+        const parsed = JSON.parse(rawA);
+        if (parsed?.token) return parsed.token;
+        if (typeof rawA === "string" && rawA.trim()) return rawA;
+      }
+    } catch {}
+    try {
+      const rawB = localStorage.getItem("adminData");
+      if (rawB) {
+        const parsed = JSON.parse(rawB);
+        if (parsed?.token) return parsed.token;
+        if (parsed?.accessToken) return parsed.accessToken;
+      }
+    } catch {}
+    // fallback plain token
+    return localStorage.getItem("token") || "";
+  };
+
   useEffect(() => {
+    if (!id) {
+      // If route was accessed without id, redirect back
+      navigate("/admin-dashboard");
+      return;
+    }
+
     const fetchData = async () => {
       try {
+        const apiUrl = getApiUrl();
         const [courseRes, authorRes, categoryRes] = await Promise.all([
-          axios.get(`http://localhost:5000/api/courses/${id}`),
-          axios.get("http://localhost:5000/api/authors"),
-          axios.get("http://localhost:5000/api/categories"),
+          axios.get(`${apiUrl}/api/courses/${id}`),
+          axios.get(`${apiUrl}/api/authors`),
+          axios.get(`${apiUrl}/api/categories`),
         ]);
-        if (!courseRes.data || !courseRes.data._id) {
+
+        // Normalize course: ensure category and author are IDs (strings)
+        const c = courseRes.data || null;
+        if (!c) {
           setCourse(null);
           setSuccessMsg("Course not found or deleted.");
         } else {
-          setCourse(courseRes.data);
+          const normalized = {
+            ...c,
+            // category can be object {_id, title} or id string or title string
+            category: c?.category?._id || c?.category || "",
+            // author can be object {_id, name} or id string or name string
+            author: c?.author?._id || c?.author || "",
+            title: c?.title || "",
+            price: typeof c?.price === "number" ? c.price : Number(c?.price) || 0,
+            lessons: typeof c?.lessons === "number" ? c.lessons : Number(c?.lessons) || 0,
+            imgUrl: c?.imgUrl || "",
+            imgAlt: c?.imgAlt || "",
+          };
+          setCourse(normalized);
           setSuccessMsg("");
         }
-        setAuthors(authorRes.data);
-        setCategories(categoryRes.data);
+        setAuthors(authorRes.data || []);
+        setCategories(categoryRes.data || []);
       } catch (err) {
         setCourse(null);
         setSuccessMsg("Course not found or deleted.");
-        console.error("❌ Error loading data:", err.message);
+        console.error("❌ Error loading data:", err?.message || err);
       }
     };
     fetchData();
-  }, [id]);
+  }, [id, navigate]);
 
   const handleChange = (e) => {
-    setCourse({ ...course, [e.target.name]: e.target.value });
+    if (!course) return;
+    const { name, value, type } = e.target;
+    let parsed = value;
+    if (type === "number") {
+      parsed = value === "" ? "" : Number(value);
+    }
+    setCourse({ ...course, [name]: parsed });
   };
 
-  const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
+  const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(String(id));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,21 +111,22 @@ const AdminEditCourse = ({ fetchCourses }) => {
     const confirmed = window.confirm("Are you sure you want to update this course?");
     if (!confirmed) return;
 
-    // Parse token from localStorage (it's a JSON string with {token, loginTime})
-    let token = "";
-    try {
-      const tokenData = JSON.parse(localStorage.getItem("adminToken"));
-      token = tokenData?.token || "";
-    } catch {
-      token = "";
-    }
+    const token = getAdminToken();
     if (!token) {
       alert("Admin not logged in or session expired.");
       return;
     }
 
     try {
-      const res = await axios.put(`http://localhost:5000/api/courses/${id}`, course, {
+      const apiUrl = getApiUrl();
+      // Make sure category & author are IDs when sending
+      const payload = {
+        ...course,
+        category: course.category,
+        author: course.author,
+      };
+
+      const res = await axios.put(`${apiUrl}/api/courses/${id}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSuccessMsg("✅ Course updated successfully!");
@@ -88,11 +142,15 @@ const AdminEditCourse = ({ fetchCourses }) => {
       } else {
         alert("Failed to update course. Please try again.");
       }
-      console.error("❌ Error updating course:", err.message);
+      console.error("❌ Error updating course:", err?.message || err);
     }
   };
 
   if (!course) return <div className="text-center py-4 text-danger">{successMsg || "Course not found."}</div>;
+
+  // compute current selection ids (in case backend returned names/titles previously)
+  const currentCategoryId = course.category;
+  const currentAuthorId = course.author;
 
   return (
     <div className="container mt-5">
@@ -134,11 +192,12 @@ const AdminEditCourse = ({ fetchCourses }) => {
           <select
             name="category"
             className="form-select"
-            value={course.category}
+            value={currentCategoryId}
             onChange={handleChange}
           >
+            <option value="">-- Select category --</option>
             {categories.map((cat) => (
-              <option key={cat._id} value={cat.title}>
+              <option key={cat._id} value={cat._id}>
                 {cat.title}
               </option>
             ))}
@@ -149,11 +208,12 @@ const AdminEditCourse = ({ fetchCourses }) => {
           <select
             name="author"
             className="form-select"
-            value={course.author}
+            value={currentAuthorId}
             onChange={handleChange}
           >
+            <option value="">-- Select author --</option>
             {authors.map((auth) => (
-              <option key={auth._id} value={auth.name}>
+              <option key={auth._id} value={auth._id}>
                 {auth.name}
               </option>
             ))}
