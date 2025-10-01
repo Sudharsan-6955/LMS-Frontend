@@ -18,7 +18,7 @@
 !/.gitignore
 !/README.md
 !/.github/
-
+!/src/config.js
 ###########################################
 ## 2. KEEP COMMON UNTRACKED FOLDERS / FILES ##
 ###########################################
