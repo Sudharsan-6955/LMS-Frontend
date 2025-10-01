@@ -14,7 +14,7 @@ import Respond from "../component/sidebar/respond";
 const CourseSingle = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const loggedInUser = JSON.parse(localStorage.getItem("user")) || { name: "Demo User", email: "demo@example.com" };
+  const loggedInUser = JSON.parse(localStorage.getItem("user")) || null; // Do NOT provide a demo fallback here. Keep null when user is not authenticated so the UI can block posting.
   const [course, setCourse] = useState(null);
   const [selectedVideoUrl, setSelectedVideoUrl] = useState(null);
   const [openAccordionIndex, setOpenAccordionIndex] = useState(null);
