@@ -8,5 +8,7 @@ const config = {
 
 export default config;
 export const API_BASE_URL = config.API_BASE_URL;
+// Add alias to satisfy imports that expect API_BASE
+export const API_BASE = config.API_BASE_URL;
 export const ASSET_PATH = config.ASSET_PATH;
 export const DEFAULT_AVATAR = config.DEFAULT_AVATAR;
