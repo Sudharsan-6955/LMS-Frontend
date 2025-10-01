@@ -52,12 +52,10 @@ private-key.pem
 !vercel.json
 
 # Keep source & public assets tracked
-!src/
-!public/
+!src/**
+!public/**
 
-# If you add font/image assets that you want tracked, ensure their folders are not ignored.
-# Example for the icon/font and placeholder image used in your app:
-!src/assets/
-!src/assets/css/icofont.min.css
-!src/assets/images/
+# Explicitly ensure assets used by pages are tracked
+!src/assets/**
+!src/assets/images/**
 !src/assets/images/bg-img/01.jpg

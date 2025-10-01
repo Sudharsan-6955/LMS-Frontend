@@ -25,9 +25,28 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>Edukon</title>
+    <!-- IcoFont CDN to ensure icon fonts load (add crossorigin and preconnect) -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/icofont/1.0.1/css/icofont.min.css"
+      crossorigin="anonymous"
+    />
+    <!-- Optional: Font Awesome CDN if your project uses it -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      crossorigin="anonymous"
+    />
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <!-- Hidden debug sample: if you open the page source you can temporarily un-hide to check icons -->
+    <div id="icon-debug" style="position:absolute;left:-9999px;top:-9999px;visibility:hidden;">
+      <i class="icofont-twitter" aria-hidden="true"></i>
+      <i class="icofont-facebook" aria-hidden="true"></i>
+      <i class="icofont-login" aria-hidden="true"></i>
+    </div>
     <div id="root"></div>
     <!--
       This HTML file is a template.
