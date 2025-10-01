@@ -19,15 +19,22 @@ const Respond = ({ courseId, onComment, user }) => {
         setSubmitting(true);
         try {
             const base = (API_BASE_URL || "https://lms-backend-6ik3.onrender.com").replace(/\/$/, "");
-            await axios.post(`${base}/api/comments/${encodeURIComponent(courseId)}`, {
-                text: form.message,
-                user: { name: activeUser.name, email: activeUser.email, id: activeUser.id || activeUser._id }
-            }, { timeout: 10000 });
+            // include several common fields the backend might expect
+            const payload = {
+                text: form.message.trim(),
+                courseId,
+                name: activeUser.name,
+                email: activeUser.email,
+                userId: activeUser.id || activeUser._id
+            };
+            await axios.post(`${base}/api/comments/${encodeURIComponent(courseId)}`, payload, { timeout: 10000 });
             setForm({ ...form, subject: "", message: "", rating: 0 });
             if (onComment) onComment();
         } catch (err) {
-            console.error("Failed to post comment:", err?.message || err);
-            alert("Failed to post comment. Please try again.");
+            // Try to show server message if present
+            const serverMsg = err?.response?.data?.message || err?.response?.data || err?.message;
+            console.error("Failed to post comment:", serverMsg);
+            alert("Failed to post comment: " + (serverMsg || "Please check console for details"));
         } finally {
             setSubmitting(false);
         }
