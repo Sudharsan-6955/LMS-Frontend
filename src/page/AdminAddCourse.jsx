@@ -260,6 +260,9 @@ const AdminAddCourse = () => {
       if (res?.data) {
         setSuccess(`✅ Course "${payload.title}" added successfully!`);
         
+        // Show alert message for successful course addition
+        alert(`✅ Course "${payload.title}" added successfully to category "${payload.category}"!`);
+        
         // Update UI with backend-calculated durations
         setVideoContent(res.data.course?.videoContent || videoContent);
         setFormData({
@@ -323,6 +326,7 @@ const AdminAddCourse = () => {
         }, 1000);
       } else {
         setSuccess("✅ Course added! (No response data returned)");
+        alert("✅ Course added successfully!");
         setTimeout(() => setSuccess(""), 3000);
       }
     } catch (err) {
