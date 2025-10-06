@@ -96,6 +96,26 @@ const AdminEditCourse = ({ fetchCourses }) => {
 
   const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(String(id));
 
+  const uploadImageToCloudinary = async (file) => {
+    const cloudName = "rajibraj91"; // Replace with your Cloudinary cloud name
+    const uploadPreset = "your_upload_preset"; // Replace with your Cloudinary upload preset
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+
+    try {
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+        formData
+      );
+      return response.data.secure_url; // Return the uploaded image URL
+    } catch (err) {
+      console.error("❌ Error uploading image to Cloudinary:", err?.message || err);
+      throw new Error("Failed to upload image. Please try again.");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -119,6 +139,12 @@ const AdminEditCourse = ({ fetchCourses }) => {
 
     try {
       const apiUrl = getApiUrl();
+
+      // If an image file is provided, upload it to Cloudinary
+      if (course.imgUrl && course.imgUrl instanceof File) {
+        course.imgUrl = await uploadImageToCloudinary(course.imgUrl);
+      }
+
       // Make sure category & author are IDs when sending
       const payload = {
         ...course,
@@ -139,6 +165,8 @@ const AdminEditCourse = ({ fetchCourses }) => {
       setSuccessMsg("");
       if (err.response?.status === 404) {
         alert("Course not found. It may have been deleted.");
+      } else if (err.response?.status === 400) {
+        alert("Invalid data. Please check the form and try again.");
       } else {
         alert("Failed to update course. Please try again.");
       }

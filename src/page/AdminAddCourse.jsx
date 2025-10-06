@@ -5,6 +5,9 @@ import { API_BASE_URL } from "../config"; // added
 
 const AdminAddCourse = () => {
   const [authors, setAuthors] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -104,6 +107,10 @@ const AdminAddCourse = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setSuccess("");
+    setError("");
+    
     let token = "";
     try {
       const tokenData = JSON.parse(localStorage.getItem("adminToken"));
@@ -112,12 +119,16 @@ const AdminAddCourse = () => {
       token = "";
     }
     if (!token) {
-      alert("Admin not logged in or session expired.");
+      setError("Admin not logged in or session expired.");
+      setLoading(false);
       return;
     }
 
     try {
       const base = (API_BASE_URL || "https://lms-backend-6ik3.onrender.com").replace(/\/$/, "");
+      
+      setSuccess("⏳ Uploading images...");
+      
       // Use either uploaded file or manual URL for course image
       const imgUrl = imgFile
         ? await uploadToCloudinary(imgFile)
@@ -126,6 +137,8 @@ const AdminAddCourse = () => {
       const authorImgUrl = authorImgFile
         ? await uploadToCloudinary(authorImgFile)
         : (formData.authorImgUrl || "");
+
+      setSuccess("⏳ Processing author information...");
 
       let authorObj = null;
       if (formData.authorType === "select") {
@@ -140,25 +153,69 @@ const AdminAddCourse = () => {
           };
         }
       } else if (formData.authorType === "new" && formData.newAuthorName) {
-        // create new author on backend using configured base
-        const newAuthorRes = await axios.post(`${base}/api/authors`, {
+        // Create new author object directly without backend call
+        // Since backend doesn't support POST /api/authors, we'll create the author inline
+        authorObj = {
           name: formData.newAuthorName,
           image: authorImgUrl,
-          imgAlt: formData.authorImgAlt,
+          imgAlt: formData.authorImgAlt || "",
           desc: formData.authorDesc || "",
           degi: formData.authorDegi || "",
           socialList: []
-        }, { timeout: 10000 });
-        const na = newAuthorRes.data || newAuthorRes.data?.data || newAuthorRes.data?.author || newAuthorRes.data;
-        authorObj = {
-          name: na.name,
-          image: na.image,
-          degi: na.degi,
-          desc: na.desc,
-          socialList: na.socialList || []
         };
-        setAuthors(prev => [...prev, na]);
+        
+        console.log("Creating new author inline:", authorObj);
+        setSuccess("⏳ Creating new author...");
+        
+        // Optionally try to add to backend authors if endpoint exists, but don't fail if it doesn't
+        try {
+          const newAuthorRes = await axios.post(`${base}/api/authors`, {
+            name: formData.newAuthorName,
+            image: authorImgUrl,
+            imgAlt: formData.authorImgAlt,
+            desc: formData.authorDesc || "",
+            degi: formData.authorDegi || "",
+            socialList: []
+          }, { 
+            timeout: 10000,
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          const na = newAuthorRes.data || newAuthorRes.data?.data || newAuthorRes.data?.author || newAuthorRes.data;
+          if (na && na._id) {
+            // Backend successfully created author, use that data
+            authorObj = {
+              name: na.name,
+              image: na.image,
+              degi: na.degi,
+              desc: na.desc,
+              socialList: na.socialList || []
+            };
+            setAuthors(prev => [...prev, na]);
+            setSuccess("✅ New author created on backend!");
+            console.log("✅ Author created on backend:", na);
+          }
+        } catch (authorErr) {
+          console.warn("⚠️ Backend doesn't support author creation, using inline author:", authorErr?.message);
+          setSuccess("⚠️ Creating author inline (backend endpoint not available)");
+          // Continue with inline author object - this is not a fatal error
+        }
       }
+
+      // Validate required fields
+      if (!formData.title || !formData.category) {
+        setError("Please fill in required fields: Title and Category");
+        setLoading(false);
+        return;
+      }
+
+      if (!authorObj) {
+        setError("Please select an author or create a new one");
+        setLoading(false);
+        return;
+      }
+
+      setSuccess("⏳ Calculating video duration...");
 
       // Calculate total video duration in minutes
       let totalMinutes = 0;
@@ -183,7 +240,7 @@ const AdminAddCourse = () => {
       const payload = {
         ...formData,
         imgUrl,
-        author: authorObj ? authorObj : {},
+        author: authorObj,
         overview: formData.overview ? formData.overview.split(",").map(str => str.trim()) : [],
         whatYouWillLearn: formData.whatYouWillLearn ? formData.whatYouWillLearn.split(",").map(str => str.trim()) : [],
         videoContent,
@@ -191,7 +248,8 @@ const AdminAddCourse = () => {
         isPaid: parseFloat(formData.price || 0) > 0
       };
 
-      console.log(`[Frontend Debug] Submitting course with category: "${payload.category}"`);
+      console.log(`[Frontend Debug] Submitting course with category: "${payload.category}" and author:`, payload.author);
+      setSuccess("⏳ Submitting course to server...");
 
       // POST course to deployed backend
       const res = await axios.post(`${base}/api/courses/create`, payload, {
@@ -200,6 +258,8 @@ const AdminAddCourse = () => {
       });
 
       if (res?.data) {
+        setSuccess(`✅ Course "${payload.title}" added successfully!`);
+        
         // Update UI with backend-calculated durations
         setVideoContent(res.data.course?.videoContent || videoContent);
         setFormData({
@@ -210,8 +270,11 @@ const AdminAddCourse = () => {
           author: "",
           authorType: "select",
           newAuthorName: "",
+          authorDegi: "",
+          authorDesc: "",
           imgAlt: "",
           authorImgAlt: "",
+          authorImgUrl: "",
           description: "",
           videoLink: "",
           overview: "",
@@ -229,8 +292,18 @@ const AdminAddCourse = () => {
         setImgFile(null);
         setAuthorImgFile(null);
 
+        // Reset video content to initial state
+        setVideoContent([
+          { title: "", duration: "", lessons: [{ title: "", videoUrl: "", duration: "" }] }
+        ]);
+
         // Trigger a global event to refresh categories on all pages
         window.dispatchEvent(new CustomEvent('courseAdded', { detail: { category: payload.category } }));
+
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setSuccess("");
+        }, 3000);
 
         // Verify category update from backend
         setTimeout(async () => {
@@ -248,21 +321,44 @@ const AdminAddCourse = () => {
             console.error('Error checking updated categories:', err?.response?.data || err?.message || err);
           }
         }, 1000);
-
-        alert(`✅ Course "${payload.title}" added to category "${payload.category}"!`);
       } else {
-        alert("✅ Course added! (No duration info returned)");
+        setSuccess("✅ Course added! (No response data returned)");
+        setTimeout(() => setSuccess(""), 3000);
       }
     } catch (err) {
       console.error("❌ Error adding course:", err?.response?.data || err?.message || err);
-      const serverMsg = err.response?.data?.message || err.response?.data?.error || err.message || "Error while adding course";
-      alert(serverMsg);
+      
+      // Better error handling
+      let errorMessage = "Error while adding course";
+      
+      if (err.response?.status === 400) {
+        errorMessage = "Invalid data. Please check all fields and try again.";
+      } else if (err.response?.status === 401) {
+        errorMessage = "Authentication failed. Please login again.";
+      } else if (err.response?.status === 404) {
+        errorMessage = "API endpoint not found. Please check if the backend is running.";
+      } else if (err.response?.status === 500) {
+        errorMessage = "Server error. Please try again later.";
+      } else if (err.code === 'NETWORK_ERROR' || err.message.includes('Network Error')) {
+        errorMessage = "Network error. Please check your connection and try again.";
+      } else {
+        errorMessage = err.response?.data?.message || err.response?.data?.error || err.message || "Unknown error occurred";
+      }
+      
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="container mt-5">
       <h3 className="mb-4">Add New Course</h3>
+      
+      {/* Status Messages */}
+      {error && <div className="alert alert-danger">{error}</div>}
+      {success && <div className="alert alert-success">{success}</div>}
+      
       <form onSubmit={handleSubmit}>
         <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder="Course Title" className="form-control mb-2" />
         <input type="number" name="price" value={formData.price} onChange={handleChange} placeholder="Price" className="form-control mb-2" />
@@ -464,8 +560,24 @@ const AdminAddCourse = () => {
         </select>
         <input type="text" name="language" value={formData.language} onChange={handleChange} placeholder="Language" className="form-control mb-2" />
 
-        <button type="submit" className="btn btn-primary">➕ Add Course</button>
+        <button type="submit" className="btn btn-primary" disabled={loading}>
+          {loading ? "⏳ Processing..." : "➕ Add Course"}
+        </button>
       </form>
+      
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" 
+             style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
+          <div className="text-center text-white">
+            <div className="spinner-border text-light mb-3" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <h5>Processing Course...</h5>
+            <p>Please wait while we save your course</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
