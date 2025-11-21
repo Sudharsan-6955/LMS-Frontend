@@ -153,8 +153,7 @@ const AdminAddCourse = () => {
           };
         }
       } else if (formData.authorType === "new" && formData.newAuthorName) {
-        // Create new author object directly without backend call
-        // Since backend doesn't support POST /api/authors, we'll create the author inline
+        // Create new author object for the course
         authorObj = {
           name: formData.newAuthorName,
           image: authorImgUrl,
@@ -167,39 +166,10 @@ const AdminAddCourse = () => {
         console.log("Creating new author inline:", authorObj);
         setSuccess("⏳ Creating new author...");
         
-        // Optionally try to add to backend authors if endpoint exists, but don't fail if it doesn't
-        try {
-          const newAuthorRes = await axios.post(`${base}/api/authors`, {
-            name: formData.newAuthorName,
-            image: authorImgUrl,
-            imgAlt: formData.authorImgAlt,
-            desc: formData.authorDesc || "",
-            degi: formData.authorDegi || "",
-            socialList: []
-          }, { 
-            timeout: 10000,
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          
-          const na = newAuthorRes.data || newAuthorRes.data?.data || newAuthorRes.data?.author || newAuthorRes.data;
-          if (na && na._id) {
-            // Backend successfully created author, use that data
-            authorObj = {
-              name: na.name,
-              image: na.image,
-              degi: na.degi,
-              desc: na.desc,
-              socialList: na.socialList || []
-            };
-            setAuthors(prev => [...prev, na]);
-            setSuccess("✅ New author created on backend!");
-            console.log("✅ Author created on backend:", na);
-          }
-        } catch (authorErr) {
-          console.warn("⚠️ Backend doesn't support author creation, using inline author:", authorErr?.message);
-          setSuccess("⚠️ Creating author inline (backend endpoint not available)");
-          // Continue with inline author object - this is not a fatal error
-        }
+        // Since backend doesn't have POST /api/authors endpoint, 
+        // we'll send the author data with the course and let the backend handle it
+        console.log("New author will be created when course is saved");
+        setSuccess("⏳ Author will be created with course...");
       }
 
       // Validate required fields
@@ -241,12 +211,17 @@ const AdminAddCourse = () => {
         ...formData,
         imgUrl,
         author: authorObj,
+        // Add a flag to indicate this is a new author that should be saved to authors collection
+        createNewAuthor: formData.authorType === "new",
         overview: formData.overview ? formData.overview.split(",").map(str => str.trim()) : [],
         whatYouWillLearn: formData.whatYouWillLearn ? formData.whatYouWillLearn.split(",").map(str => str.trim()) : [],
         videoContent,
         duration: autoDuration,
         isPaid: parseFloat(formData.price || 0) > 0
       };
+
+      console.log(`[Frontend Debug] Final author object:`, authorObj);
+      console.log(`[Frontend Debug] Create new author flag:`, payload.createNewAuthor);
 
       console.log(`[Frontend Debug] Submitting course with category: "${payload.category}" and author:`, payload.author);
       setSuccess("⏳ Submitting course to server...");
@@ -259,6 +234,22 @@ const AdminAddCourse = () => {
 
       if (res?.data) {
         setSuccess(`✅ Course "${payload.title}" added successfully!`);
+        
+        console.log("Backend response:", res.data);
+        
+        // Check if a new author was created and update the authors list
+        if (payload.createNewAuthor) {
+          if (res.data.author && res.data.author._id) {
+            setAuthors(prev => [...prev, res.data.author]);
+            setSuccess(`✅ Course "${payload.title}" added and new author "${res.data.author.name}" created in database!`);
+            console.log("✅ New author added to authors list:", res.data.author);
+          } else {
+            setSuccess(`✅ Course "${payload.title}" added but author may not be stored in authors collection`);
+            console.warn("⚠️ Backend did not return author data. Author might not be saved to authors collection.");
+            console.warn("⚠️ Your backend needs to handle the 'createNewAuthor' flag and save new authors to the authors collection.");
+            console.warn("⚠️ Current response:", res.data);
+          }
+        }
         
         // Show alert message for successful course addition
         alert(`✅ Course "${payload.title}" added successfully to category "${payload.category}"!`);
@@ -585,5 +576,7 @@ const AdminAddCourse = () => {
     </div>
   );
 };
+
+
 
 export default AdminAddCourse;

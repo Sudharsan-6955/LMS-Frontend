@@ -5,7 +5,7 @@ const title = "Our Popular Tags";
 const tagsList = [
     {
         link: '#',
-        text: 'envato',
+        text: 'Reactbits',
     },
     {
         link: '#',
@@ -29,7 +29,7 @@ const tagsList = [
     },
     {
         link: '#',
-        text: 'envato',
+        text: 'Reactbits',
     },
     {
         link: '#',

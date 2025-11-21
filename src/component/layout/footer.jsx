@@ -314,7 +314,7 @@ const Footer = () => {
                 <div className="footer-bottom style-2 fadein-footer-section">
                     <div className="container">
                         <div className="section-wrapper">
-                            <p>&copy; 2022 <Link to="/">Edukon</Link> Designed by <a href="https://themeforest.net/user/CodexCoder" target="_blank" rel="noopener noreferrer">CodexCoder</a> </p>
+                            <p>&copy; 2025 <Link to="/">Edukart</Link> Designed by <a href="https://www.sudharsan.codes/" target="_blank" rel="noopener noreferrer">Sudharsan</a> </p>
                         </div>
                     </div>
                 </div>
